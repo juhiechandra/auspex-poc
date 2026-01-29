@@ -88,6 +88,16 @@ class GeminiClient:
             log(step_name, f"Failed to parse Gemini response: {result}")
             raise ValueError(f"Invalid Gemini response format: {e}")
 
+    def _fix_json(self, text: str) -> str:
+        """Fix common JSON issues from LLM responses."""
+        # Remove trailing commas before } or ]
+        text = re.sub(r',(\s*[}\]])', r'\1', text)
+        # Fix unescaped newlines in strings
+        text = re.sub(r'(?<!\\)\n(?=.*")', '\\n', text)
+        # Remove control characters
+        text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', text)
+        return text
+
     def _extract_json(self, text: str, step_name: str = "PARSE") -> dict:
         """Extract JSON from model response text."""
         log(step_name, "Extracting JSON from response...")
@@ -108,9 +118,20 @@ class GeminiClient:
             start = text.find("{")
             end = text.rfind("}") + 1
             if start != -1 and end > start:
-                parsed = json.loads(text[start:end])
-                log(step_name, "Extracted JSON from text", parsed)
-                return parsed
+                json_str = text[start:end]
+                try:
+                    parsed = json.loads(json_str)
+                    log(step_name, "Extracted JSON from text", parsed)
+                    return parsed
+                except json.JSONDecodeError:
+                    # Try fixing common issues
+                    fixed = self._fix_json(json_str)
+                    try:
+                        parsed = json.loads(fixed)
+                        log(step_name, "Parsed JSON after fixing", parsed)
+                        return parsed
+                    except json.JSONDecodeError as e:
+                        log(step_name, f"FAILED to parse JSON: {e}")
             log(step_name, f"FAILED to extract JSON. Raw text: {text[:500]}")
             raise ValueError(f"Could not extract JSON from response: {text[:500]}")
 

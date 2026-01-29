@@ -181,7 +181,7 @@ export default function DiagramUpload({ onAnalysisComplete, isLoading, setIsLoad
           style={{ display: 'none' }}
           onChange={(e) => handleFile(e.target.files[0])}
         />
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
+        <div style={{ fontSize: '48px', marginBottom: '16px', color: '#4299e1' }}>[+]</div>
         <p style={{ color: '#4a5568', marginBottom: '8px' }}>
           Drag and drop your architecture diagram here
         </p>

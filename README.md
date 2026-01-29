@@ -1,70 +1,61 @@
 # Auspex - AI-Powered Threat Modeling
 
-A POC application that uses AWS Bedrock (Claude) to analyze architecture diagrams and generate comprehensive threat models.
+Analyzes architecture diagrams and generates threat reports using AI (Google Gemini / AWS Bedrock).
 
-## Architecture
+## Features
 
-```
-Frontend (React) → Backend (FastAPI) → AWS Bedrock (Claude 3.5 Sonnet)
-```
+- Upload architecture diagrams (PNG, JPEG, WebP)
+- AI-powered component extraction
+- Threat generation using STRIDE methodology
+- MITRE ATT&CK mapping
+- Export reports to Excel
 
-## Prerequisites
-
-- Python 3.9+
-- Node.js 18+
-- AWS credentials configured with Bedrock access
-- Access to `anthropic.claude-3-5-sonnet-20241022-v2:0` model
-
-## Setup
+## Quick Start
 
 ### Backend
 
 ```bash
 cd backend
-
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+source venv/bin/activate
 pip install -r requirements.txt
-
-# Run the server
+export GEMINI_API_KEY=your_api_key
 python main.py
 ```
-
-The API will be available at `http://localhost:8000`
 
 ### Frontend
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Run development server
 npm run dev
 ```
 
-The UI will be available at `http://localhost:3000`
+## Deployment (Render)
 
-## Usage
+### Backend (Web Service)
+```
+Root Directory: backend
+Build Command:  pip install -r requirements.txt
+Start Command:  uvicorn main:app --host 0.0.0.0 --port $PORT
+Environment:    GEMINI_API_KEY=your_key
+```
 
-1. **Upload Diagram**: Upload your architecture diagram (PNG, JPEG, GIF, or WebP)
-2. **Validate Components**: Review and edit the extracted components, features, and description
-3. **Select Template**: Choose a threat template focus:
-   - **STRIDE Baseline**: General threat analysis
-   - **Network Security**: Network-layer threats
-   - **AWS Cloud Security**: AWS-specific misconfigurations
-4. **View Report**: Review, filter, and export the generated threat matrix
+### Frontend (Static Site)
+```
+Root Directory: frontend
+Build Command:  npm install && npm run build
+Publish Dir:    dist
+Environment:    VITE_API_URL=https://your-backend.onrender.com
+```
 
 ## API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
+| `/health` | GET | Health check |
 | `/api/analyze-diagram` | POST | Analyze architecture diagram |
-| `/api/extract-components` | POST | Extract components from analysis |
+| `/api/extract-components` | POST | Extract components |
 | `/api/generate-threats` | POST | Generate threat scenarios |
 
 ## Project Structure
@@ -73,7 +64,8 @@ The UI will be available at `http://localhost:3000`
 auspex-poc/
 ├── backend/
 │   ├── main.py              # FastAPI application
-│   ├── bedrock_client.py    # AWS Bedrock wrapper
+│   ├── gemini_client.py     # Google Gemini API client
+│   ├── bedrock_client.py    # AWS Bedrock client
 │   ├── prompts/             # Prompt templates
 │   └── requirements.txt
 ├── frontend/
@@ -82,21 +74,11 @@ auspex-poc/
 │   │   ├── api.js
 │   │   └── components/
 │   └── package.json
-└── README.md
+└── render.yaml              # Render deployment config
 ```
 
-## AWS Configuration
+## Tech Stack
 
-Ensure your AWS credentials are configured:
-
-```bash
-aws configure
-```
-
-Or set environment variables:
-
-```bash
-export AWS_ACCESS_KEY_ID=your_access_key
-export AWS_SECRET_ACCESS_KEY=your_secret_key
-export AWS_DEFAULT_REGION=us-east-1
-```
+- **Frontend**: React, Vite, ExcelJS
+- **Backend**: FastAPI, Pydantic, httpx
+- **AI**: Google Gemini API / AWS Bedrock

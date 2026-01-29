@@ -93,19 +93,19 @@ const templates = [
     id: 'baseline',
     name: 'STRIDE Baseline',
     description: 'Comprehensive threat analysis using STRIDE methodology covering all major threat categories.',
-    icon: '🎯',
+    icon: '[S]',
   },
   {
     id: 'network',
     name: 'Network Security',
     description: 'Focus on network-layer threats including DDoS, MITM, DNS attacks, and lateral movement.',
-    icon: '🌐',
+    icon: '[N]',
   },
   {
     id: 'aws',
     name: 'AWS Cloud Security',
     description: 'AWS-specific misconfigurations, IAM issues, S3 exposures, and cloud security threats.',
-    icon: '☁️',
+    icon: '[A]',
   },
 ];
 

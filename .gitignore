@@ -1,27 +1,37 @@
 # Python
 backend/venv/
-backend/__pycache__/
+__pycache__/
 *.pyc
 *.pyo
+*.pyd
+.Python
+*.so
 
 # Node
 frontend/node_modules/
 frontend/dist/
 
-# Environment files (keep .env.example)
+# Environment
 .env
-.env.local
-backend/.env
-frontend/.env
-
-# Sessions (local development only)
-backend/sessions/
+.env.*
+!.env.example
 
 # IDE
 .idea/
 .vscode/
 *.swp
+*.swo
+.claude/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/

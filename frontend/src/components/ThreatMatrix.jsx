@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 const styles = {
   container: {
@@ -164,66 +165,88 @@ export default function ThreatMatrix({ threats: initialThreats, onBack }) {
     setThreats(threats.filter((t) => t.id !== id));
   };
 
-  const exportToExcel = () => {
-    // Prepare data for Excel
-    const headers = ['ID', 'Threat Scenario', 'CIA Triad', 'STRIDE Category', 'MITRE Tactic', 'MITRE Technique', 'Mitigations'];
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Auspex Threat Modeling';
+    workbook.created = new Date();
 
-    const data = filteredThreats.map((t) => ({
-      'ID': t.id,
-      'Threat Scenario': t.scenario,
-      'CIA Triad': t.cia_triad,
-      'STRIDE Category': t.stride,
-      'MITRE Tactic': t.mitre_tactic,
-      'MITRE Technique': t.mitre_technique,
-      'Mitigations': t.mitigations,
-    }));
-
-    // Create workbook and worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-
-    // Set column widths for better readability
-    ws['!cols'] = [
-      { wch: 8 },   // ID
-      { wch: 50 },  // Scenario
-      { wch: 15 },  // CIA Triad
-      { wch: 20 },  // STRIDE
-      { wch: 20 },  // MITRE Tactic
-      { wch: 25 },  // MITRE Technique
-      { wch: 60 },  // Mitigations
+    // Summary Sheet
+    const summarySheet = workbook.addWorksheet('Summary');
+    summarySheet.columns = [
+      { header: 'Metric', key: 'metric', width: 25 },
+      { header: 'Count', key: 'count', width: 20 },
     ];
+    summarySheet.addRows([
+      { metric: 'Total Threats', count: stats.total },
+      { metric: 'Confidentiality Threats', count: stats.confidentiality },
+      { metric: 'Integrity Threats', count: stats.integrity },
+      { metric: 'Availability Threats', count: stats.availability },
+      { metric: '', count: '' },
+      { metric: 'Report Generated', count: new Date().toLocaleString() },
+    ]);
+    // Style header row
+    summarySheet.getRow(1).font = { bold: true };
+    summarySheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4299E1' } };
+    summarySheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
-    // Add summary sheet
-    const summaryData = [
-      { 'Metric': 'Total Threats', 'Count': stats.total },
-      { 'Metric': 'Confidentiality Threats', 'Count': stats.confidentiality },
-      { 'Metric': 'Integrity Threats', 'Count': stats.integrity },
-      { 'Metric': 'Availability Threats', 'Count': stats.availability },
-      { 'Metric': '', 'Count': '' },
-      { 'Metric': 'Report Generated', 'Count': new Date().toLocaleString() },
+    // Threat Details Sheet
+    const detailsSheet = workbook.addWorksheet('Threat Details');
+    detailsSheet.columns = [
+      { header: 'ID', key: 'id', width: 8 },
+      { header: 'Threat Scenario', key: 'scenario', width: 50 },
+      { header: 'CIA Triad', key: 'cia', width: 15 },
+      { header: 'STRIDE', key: 'stride', width: 20 },
+      { header: 'MITRE Tactic', key: 'tactic', width: 20 },
+      { header: 'MITRE Technique', key: 'technique', width: 25 },
+      { header: 'Mitigations', key: 'mitigations', width: 60 },
     ];
-    const summaryWs = XLSX.utils.json_to_sheet(summaryData);
-    summaryWs['!cols'] = [{ wch: 25 }, { wch: 20 }];
+    filteredThreats.forEach(t => {
+      detailsSheet.addRow({
+        id: t.id,
+        scenario: t.scenario,
+        cia: t.cia_triad,
+        stride: t.stride,
+        tactic: t.mitre_tactic,
+        technique: t.mitre_technique,
+        mitigations: t.mitigations,
+      });
+    });
+    // Style header row
+    detailsSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    detailsSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4299E1' } };
+    // Add borders to all cells
+    detailsSheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+        cell.alignment = { wrapText: true, vertical: 'top' };
+      });
+    });
 
-    // Add STRIDE breakdown sheet
-    const strideBreakdown = strideCategories.map(cat => ({
-      'STRIDE Category': cat,
-      'Count': threats.filter(t => t.stride === cat).length
-    }));
-    const strideWs = XLSX.utils.json_to_sheet(strideBreakdown);
-    strideWs['!cols'] = [{ wch: 25 }, { wch: 10 }];
+    // STRIDE Breakdown Sheet
+    const strideSheet = workbook.addWorksheet('STRIDE Breakdown');
+    strideSheet.columns = [
+      { header: 'STRIDE Category', key: 'category', width: 25 },
+      { header: 'Count', key: 'count', width: 10 },
+    ];
+    strideCategories.forEach(cat => {
+      strideSheet.addRow({
+        category: cat,
+        count: threats.filter(t => t.stride === cat).length,
+      });
+    });
+    strideSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    strideSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4299E1' } };
 
-    // Add sheets to workbook
-    XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
-    XLSX.utils.book_append_sheet(wb, ws, 'Threat Details');
-    XLSX.utils.book_append_sheet(wb, strideWs, 'STRIDE Breakdown');
-
-    // Generate filename with date
+    // Generate and download
     const date = new Date().toISOString().split('T')[0];
-    const filename = `Auspex_Threat_Report_${date}.xlsx`;
-
-    // Download
-    XLSX.writeFile(wb, filename);
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, `Auspex_Threat_Report_${date}.xlsx`);
   };
 
   const getCiaBadgeStyle = (cia) => {

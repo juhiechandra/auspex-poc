@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { analyzeDiagram, extractComponents } from '../api.js';
 
 const styles = {
   container: {
@@ -121,31 +122,37 @@ export default function DiagramUpload({ onAnalysisComplete, isLoading, setIsLoad
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const base64 = e.target.result.split(',')[1];
-        const { analyzeDiagram, extractComponents } = await import('../api.js');
+        try {
+          const base64 = e.target.result.split(',')[1];
 
-        // Step 1: Analyze diagram (creates session)
-        setStatus(`Step 1/2: Analyzing architecture diagram (${provider})...`);
-        console.log('[DiagramUpload] Starting Step 1: Analyze diagram with provider:', provider);
-        const analysis = await analyzeDiagram(base64, file.type, null, provider);
-        const sessionId = analysis.session_id;
-        console.log('[DiagramUpload] Step 1 complete, session:', sessionId);
+          // Step 1: Analyze diagram (creates session)
+          setStatus(`Step 1/2: Analyzing architecture diagram (${provider})...`);
+          console.log('[DiagramUpload] Starting Step 1: Analyze diagram with provider:', provider);
+          const analysis = await analyzeDiagram(base64, file.type, null, provider);
+          const sessionId = analysis.session_id;
+          console.log('[DiagramUpload] Step 1 complete, session:', sessionId);
 
-        // Step 2: Extract components (uses same session)
-        setStatus(`Step 2/2: Extracting components (${provider})...`);
-        console.log('[DiagramUpload] Starting Step 2: Extract components');
-        const components = await extractComponents(base64, file.type, sessionId, provider);
-        console.log('[DiagramUpload] Step 2 complete:', components);
+          // Step 2: Extract components (uses same session)
+          setStatus(`Step 2/2: Extracting components (${provider})...`);
+          console.log('[DiagramUpload] Starting Step 2: Extract components');
+          const components = await extractComponents(base64, file.type, sessionId, provider);
+          console.log('[DiagramUpload] Step 2 complete:', components);
 
-        setStatus('Analysis complete!');
-        onAnalysisComplete({
-          sessionId,
-          analysis,
-          components,
-          imageBase64: base64,
-          mediaType: file.type
-        });
-        setIsLoading(false);
+          setStatus('Analysis complete!');
+          onAnalysisComplete({
+            sessionId,
+            analysis,
+            components,
+            imageBase64: base64,
+            mediaType: file.type
+          });
+        } catch (err) {
+          console.error('[DiagramUpload] Error:', err);
+          setError(err.message);
+          setStatus(null);
+        } finally {
+          setIsLoading(false);
+        }
       };
       reader.readAsDataURL(file);
     } catch (err) {

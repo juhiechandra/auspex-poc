@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { extractComponents } from '../api.js';
 
 const styles = {
   container: {
@@ -126,19 +127,69 @@ const styles = {
     marginLeft: '16px',
     color: '#4a5568',
   },
+  loading: {
+    textAlign: 'center',
+    padding: '48px',
+    color: '#718096',
+  },
+  error: {
+    padding: '12px',
+    backgroundColor: '#fed7d7',
+    color: '#c53030',
+    borderRadius: '6px',
+    marginBottom: '16px',
+  },
+  status: {
+    padding: '12px',
+    backgroundColor: '#e6fffa',
+    color: '#234e52',
+    borderRadius: '6px',
+    marginBottom: '16px',
+  },
 };
 
 const CATEGORIES = ['compute', 'storage', 'database', 'network', 'security', 'cdn', 'dns', 'monitoring', 'other'];
 
-export default function ComponentValidator({ data, onValidationComplete, onBack }) {
-  const [description, setDescription] = useState(data.components.application_description || '');
-  const [features, setFeatures] = useState([...(data.components.key_features || [])]);
-  const [components, setComponents] = useState([...(data.components.in_scope_components || [])]);
+export default function ComponentValidator({ data, onValidationComplete, onBack, provider }) {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [status, setStatus] = useState('Extracting application components...');
+
+  const [description, setDescription] = useState('');
+  const [features, setFeatures] = useState([]);
+  const [components, setComponents] = useState([]);
   const [newFeature, setNewFeature] = useState('');
   const [newComponentName, setNewComponentName] = useState('');
   const [newComponentCategory, setNewComponentCategory] = useState('compute');
 
-  console.log('[ComponentValidator] Loaded with data:', data);
+  useEffect(() => {
+    const fetchComponents = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        setStatus(`Extracting application components (${provider})...`);
+
+        const result = await extractComponents(
+          data.imageBase64,
+          data.mediaType,
+          data.sessionId,
+          provider
+        );
+
+        setDescription(result.application_description || '');
+        setFeatures(result.key_features || []);
+        setComponents(result.in_scope_components || []);
+        setStatus(null);
+      } catch (err) {
+        console.error('[ComponentValidator] Error:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchComponents();
+  }, [data, provider]);
 
   const addFeature = () => {
     if (newFeature.trim()) {
@@ -163,7 +214,6 @@ export default function ComponentValidator({ data, onValidationComplete, onBack 
   };
 
   const handleContinue = () => {
-    console.log('[ComponentValidator] Submitting validated data');
     onValidationComplete({
       application_description: description,
       key_features: features,
@@ -171,7 +221,6 @@ export default function ComponentValidator({ data, onValidationComplete, onBack 
     });
   };
 
-  // Helper to get component display name
   const getComponentName = (comp) => {
     if (typeof comp === 'string') return comp;
     return comp.name || JSON.stringify(comp);
@@ -182,66 +231,55 @@ export default function ComponentValidator({ data, onValidationComplete, onBack 
     return comp.category;
   };
 
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <h2 style={styles.title}>Step 2: Extract Components</h2>
+        <div style={styles.loading}>
+          <div style={{ fontSize: '32px', marginBottom: '16px' }}>...</div>
+          <p>{status}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.container}>
       <h2 style={styles.title}>Step 2: Validate Components</h2>
 
-      {/* Analysis Preview */}
+      {error && <div style={styles.error}>{error}</div>}
+
+      {/* Architecture Summary (read-only) */}
       <div style={styles.analysisPreview}>
-        <div style={styles.analysisTitle}>Architecture Analysis Summary</div>
+        <div style={styles.analysisTitle}>Architecture Summary (from Step 1)</div>
 
         {(data.analysis?.entry_points || []).length > 0 && (
-          <div style={{ marginBottom: '12px' }}>
-            <strong>Entry Points ({data.analysis.entry_points.length}):</strong>
-            <ul style={styles.analysisList}>
-              {data.analysis.entry_points.map((item, i) => (
-                <li key={i} style={{ marginBottom: '4px' }}>{item}</li>
-              ))}
-            </ul>
+          <div style={{ marginBottom: '8px' }}>
+            <strong>Entry Points:</strong> {data.analysis.entry_points.length} items
           </div>
         )}
 
         {(data.analysis?.data_flows || []).length > 0 && (
-          <div style={{ marginBottom: '12px' }}>
-            <strong>Data Flows ({data.analysis.data_flows.length}):</strong>
-            <ul style={styles.analysisList}>
-              {data.analysis.data_flows.map((item, i) => (
-                <li key={i} style={{ marginBottom: '4px' }}>{item}</li>
-              ))}
-            </ul>
+          <div style={{ marginBottom: '8px' }}>
+            <strong>Data Flows:</strong> {data.analysis.data_flows.length} items
           </div>
         )}
 
         {(data.analysis?.security_boundaries || []).length > 0 && (
-          <div style={{ marginBottom: '12px' }}>
-            <strong>Security Boundaries ({data.analysis.security_boundaries.length}):</strong>
-            <ul style={styles.analysisList}>
-              {data.analysis.security_boundaries.map((item, i) => (
-                <li key={i} style={{ marginBottom: '4px' }}>{item}</li>
-              ))}
-            </ul>
+          <div style={{ marginBottom: '8px' }}>
+            <strong>Security Boundaries:</strong> {data.analysis.security_boundaries.length} items
           </div>
         )}
 
         {(data.analysis?.public_resources || []).length > 0 && (
-          <div style={{ marginBottom: '12px' }}>
-            <strong>Public Resources ({data.analysis.public_resources.length}):</strong>
-            <ul style={styles.analysisList}>
-              {data.analysis.public_resources.map((item, i) => (
-                <li key={i} style={{ marginBottom: '4px' }}>{item}</li>
-              ))}
-            </ul>
+          <div style={{ marginBottom: '8px' }}>
+            <strong>Public Resources:</strong> {data.analysis.public_resources.length} items
           </div>
         )}
 
         {(data.analysis?.private_resources || []).length > 0 && (
-          <div style={{ marginBottom: '12px' }}>
-            <strong>Private Resources ({data.analysis.private_resources.length}):</strong>
-            <ul style={styles.analysisList}>
-              {data.analysis.private_resources.map((item, i) => (
-                <li key={i} style={{ marginBottom: '4px' }}>{item}</li>
-              ))}
-            </ul>
+          <div style={{ marginBottom: '8px' }}>
+            <strong>Private Resources:</strong> {data.analysis.private_resources.length} items
           </div>
         )}
       </div>
@@ -265,7 +303,7 @@ export default function ComponentValidator({ data, onValidationComplete, onBack 
             <span key={index} style={styles.chip}>
               {feature}
               <span style={styles.chipRemove} onClick={() => removeFeature(index)}>
-                ×
+                x
               </span>
             </span>
           ))}
@@ -295,7 +333,7 @@ export default function ComponentValidator({ data, onValidationComplete, onBack 
                 <span style={styles.chipCategory}>{getComponentCategory(component)}</span>
               )}
               <span style={styles.chipRemove} onClick={() => removeComponent(index)}>
-                ×
+                x
               </span>
             </span>
           ))}

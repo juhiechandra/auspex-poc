@@ -277,20 +277,29 @@ export default function App() {
               <span
                 style={{
                   ...styles.toggleOption,
+                  ...(provider === 'gemini' ? styles.toggleActive : styles.toggleInactive)
+                }}
+                onClick={() => setProvider('gemini')}
+              >
+                Gemini API Key
+              </span>
+              <span
+                style={{
+                  ...styles.toggleOption,
+                  ...(provider === 'claude' ? styles.toggleActive : styles.toggleInactive)
+                }}
+                onClick={() => setProvider('claude')}
+              >
+                Claude API Key
+              </span>
+              <span
+                style={{
+                  ...styles.toggleOption,
                   ...(provider === 'bedrock' ? styles.toggleActive : styles.toggleInactive)
                 }}
                 onClick={() => setProvider('bedrock')}
               >
                 Bedrock
-              </span>
-              <span
-                style={{
-                  ...styles.toggleOption,
-                  ...(provider === 'gemini' ? styles.toggleActive : styles.toggleInactive)
-                }}
-                onClick={() => setProvider('gemini')}
-              >
-                Gemini
               </span>
             </div>
             {sessionId && (
@@ -330,6 +339,7 @@ export default function App() {
                 data={analysisData}
                 onValidationComplete={handleValidationComplete}
                 onBack={() => setCurrentStep(1)}
+                provider={provider}
               />
             )}
 

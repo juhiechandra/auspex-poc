@@ -13,6 +13,7 @@ import os
 
 from bedrock_client import BedrockClient, log
 from gemini_client import GeminiClient
+from claude_client import ClaudeClient
 from database import init_database, get_all_prompts, get_prompt, update_prompt, reset_prompt, PROMPT_DEFINITIONS
 
 # Valid prompt keys (whitelist)
@@ -40,11 +41,12 @@ app.add_middleware(
 # Initialize clients lazily
 _bedrock_client = None
 _gemini_client = None
+_claude_client = None
 
 
 def get_client(provider: str):
     """Get the appropriate client based on provider."""
-    global _bedrock_client, _gemini_client
+    global _bedrock_client, _gemini_client, _claude_client
 
     if provider == "bedrock":
         if _bedrock_client is None:
@@ -54,6 +56,10 @@ def get_client(provider: str):
         if _gemini_client is None:
             _gemini_client = GeminiClient()
         return _gemini_client
+    elif provider == "claude":
+        if _claude_client is None:
+            _claude_client = ClaudeClient()
+        return _claude_client
     else:
         raise HTTPException(status_code=400, detail=f"Invalid provider: {provider}")
 
@@ -68,7 +74,7 @@ class AnalyzeDiagramRequest(BaseModel):
     image: str
     media_type: Optional[str] = "image/png"
     session_id: Optional[str] = None
-    provider: Literal["bedrock", "gemini"] = "bedrock"
+    provider: Literal["bedrock", "gemini", "claude"] = "bedrock"
 
 
 class AnalyzeDiagramResponse(BaseModel):
@@ -84,7 +90,7 @@ class ExtractComponentsRequest(BaseModel):
     image: str
     media_type: Optional[str] = "image/png"
     session_id: Optional[str] = None
-    provider: Literal["bedrock", "gemini"] = "bedrock"
+    provider: Literal["bedrock", "gemini", "claude"] = "bedrock"
 
 
 class ComponentItem(BaseModel):
@@ -105,7 +111,7 @@ class GenerateThreatsRequest(BaseModel):
     key_features: list
     template: Optional[str] = "baseline"
     session_id: Optional[str] = None
-    provider: Literal["bedrock", "gemini"] = "bedrock"
+    provider: Literal["bedrock", "gemini", "claude"] = "bedrock"
 
 
 class ThreatItem(BaseModel):
@@ -144,10 +150,12 @@ async def root():
 @app.get("/health")
 async def health():
     gemini_configured = bool(os.environ.get("GEMINI_API_KEY"))
+    claude_configured = bool(os.environ.get("CLAUDE_API_KEY"))
     db_configured = bool(os.environ.get("DATABASE_URL"))
     return {
         "status": "healthy",
         "gemini_available": gemini_configured,
+        "claude_available": claude_configured,
         "database_available": db_configured
     }
 

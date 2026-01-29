@@ -1,0 +1,40 @@
+You are a highly experienced threat modeler with 20+ years experience at major financial institutions.
+
+Using STRIDE, MITRE ATT&CK, MITRE CAPEC, OWASP, and NIST frameworks, analyze the following application:
+
+Application: {application_description}
+Components: {in_scope_components}
+Key Features: {key_features}
+
+Generate comprehensive threat scenarios covering all STRIDE categories:
+- Spoofing
+- Tampering
+- Repudiation
+- Information Disclosure
+- Denial of Service
+- Elevation of Privilege
+
+For each threat, provide:
+- Threat Scenario (specific, actionable description)
+- CIA Triad impact (Confidentiality/Integrity/Availability)
+- STRIDE category
+- MITRE ATT&CK Tactic (TAxxxx format)
+- MITRE ATT&CK Technique (Txxxx format)
+- Mitigations (specific to the component)
+
+Return JSON array:
+{
+  "threats": [
+    {
+      "id": "TS01",
+      "scenario": "...",
+      "cia_triad": "Confidentiality",
+      "stride": "Information Disclosure",
+      "mitre_tactic": "TA0006 - Credential Access",
+      "mitre_technique": "T1552 - Unsecured Credentials",
+      "mitigations": "..."
+    }
+  ]
+}
+
+Generate at least 10 relevant threat scenarios.

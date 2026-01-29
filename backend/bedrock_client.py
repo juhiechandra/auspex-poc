@@ -34,7 +34,7 @@ class BedrockClient:
     def __init__(self, region_name: str = "us-east-1"):
         log("INIT", f"Initializing Bedrock client in region: {region_name}")
         self.client = boto3.client("bedrock-runtime", region_name=region_name)
-        self.model_id = "us.anthropic.claude-opus-4-20250514-v1:0"
+        self.model_id = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
         log("INIT", f"Using model: {self.model_id}")
 
     def _invoke(self, messages: list, max_tokens: int = 4096, step_name: str = "INVOKE") -> dict:

@@ -2,9 +2,11 @@ You are a highly experienced threat modeler with 20+ years experience at major f
 
 Using STRIDE, MITRE ATT&CK, MITRE CAPEC, OWASP, and NIST frameworks, analyze the following application:
 
+<!-- STATIC:VARIABLES -->
 Application: {application_description}
 Components: {in_scope_components}
 Key Features: {key_features}
+<!-- /STATIC:VARIABLES -->
 
 Generate comprehensive threat scenarios covering all STRIDE categories:
 - Spoofing
@@ -22,6 +24,7 @@ For each threat, provide:
 - MITRE ATT&CK Technique (Txxxx format)
 - Mitigations (specific to the component)
 
+<!-- STATIC:OUTPUT_FORMAT -->
 Return JSON array:
 {
   "threats": [
@@ -36,5 +39,6 @@ Return JSON array:
     }
   ]
 }
+<!-- /STATIC:OUTPUT_FORMAT -->
 
 Generate at least 10 relevant threat scenarios.

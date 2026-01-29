@@ -3,6 +3,7 @@ import DiagramUpload from './components/DiagramUpload';
 import ComponentValidator from './components/ComponentValidator';
 import TemplateSelector from './components/TemplateSelector';
 import ThreatMatrix from './components/ThreatMatrix';
+import PromptEditor from './components/PromptEditor';
 
 // localStorage helper functions
 const STORAGE_KEY = 'auspex_session';
@@ -67,6 +68,28 @@ const styles = {
   tagline: {
     fontSize: '14px',
     color: '#a0aec0',
+  },
+  navTabs: {
+    display: 'flex',
+    gap: '4px',
+    backgroundColor: '#2d3748',
+    padding: '4px',
+    borderRadius: '8px',
+  },
+  navTab: {
+    padding: '8px 16px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '500',
+    transition: 'all 0.2s',
+    border: 'none',
+    background: 'transparent',
+    color: '#a0aec0',
+  },
+  navTabActive: {
+    backgroundColor: '#4299e1',
+    color: 'white',
   },
   sessionBadge: {
     fontSize: '12px',
@@ -147,6 +170,7 @@ const STEPS = [
 ];
 
 export default function App() {
+  const [activeView, setActiveView] = useState('analyze'); // 'analyze' or 'prompts'
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
@@ -226,6 +250,26 @@ export default function App() {
           <div style={styles.headerLeft}>
             <span style={styles.logo}>Auspex</span>
             <span style={styles.tagline}>AI-Powered Threat Modeling</span>
+            <div style={styles.navTabs}>
+              <button
+                style={{
+                  ...styles.navTab,
+                  ...(activeView === 'analyze' ? styles.navTabActive : {})
+                }}
+                onClick={() => setActiveView('analyze')}
+              >
+                Analyze
+              </button>
+              <button
+                style={{
+                  ...styles.navTab,
+                  ...(activeView === 'prompts' ? styles.navTabActive : {})
+                }}
+                onClick={() => setActiveView('prompts')}
+              >
+                Prompts
+              </button>
+            </div>
           </div>
           <div style={styles.headerRight}>
             {/* Provider Toggle */}
@@ -257,48 +301,54 @@ export default function App() {
       </header>
 
       <main style={styles.main}>
-        <div style={styles.stepper}>
-          {STEPS.map((step) => (
-            <div key={step.id} style={getStepStyle(step.id)}>
-              <span style={styles.stepNumber}>
-                {step.id < currentStep ? '✓' : step.id}
-              </span>
-              {step.name}
+        {activeView === 'prompts' ? (
+          <PromptEditor />
+        ) : (
+          <>
+            <div style={styles.stepper}>
+              {STEPS.map((step) => (
+                <div key={step.id} style={getStepStyle(step.id)}>
+                  <span style={styles.stepNumber}>
+                    {step.id < currentStep ? '✓' : step.id}
+                  </span>
+                  {step.name}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {currentStep === 1 && (
-          <DiagramUpload
-            onAnalysisComplete={handleAnalysisComplete}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-            provider={provider}
-          />
-        )}
+            {currentStep === 1 && (
+              <DiagramUpload
+                onAnalysisComplete={handleAnalysisComplete}
+                isLoading={isLoading}
+                setIsLoading={setIsLoading}
+                provider={provider}
+              />
+            )}
 
-        {currentStep === 2 && analysisData && (
-          <ComponentValidator
-            data={analysisData}
-            onValidationComplete={handleValidationComplete}
-            onBack={() => setCurrentStep(1)}
-          />
-        )}
+            {currentStep === 2 && analysisData && (
+              <ComponentValidator
+                data={analysisData}
+                onValidationComplete={handleValidationComplete}
+                onBack={() => setCurrentStep(1)}
+              />
+            )}
 
-        {currentStep === 3 && validatedData && (
-          <TemplateSelector
-            validatedData={validatedData}
-            sessionId={sessionId}
-            provider={provider}
-            onThreatsGenerated={handleThreatsGenerated}
-            onBack={() => setCurrentStep(2)}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-          />
-        )}
+            {currentStep === 3 && validatedData && (
+              <TemplateSelector
+                validatedData={validatedData}
+                sessionId={sessionId}
+                provider={provider}
+                onThreatsGenerated={handleThreatsGenerated}
+                onBack={() => setCurrentStep(2)}
+                isLoading={isLoading}
+                setIsLoading={setIsLoading}
+              />
+            )}
 
-        {currentStep === 4 && threats && (
-          <ThreatMatrix threats={threats} sessionId={sessionId} onBack={handleReset} />
+            {currentStep === 4 && threats && (
+              <ThreatMatrix threats={threats} sessionId={sessionId} onBack={handleReset} />
+            )}
+          </>
         )}
       </main>
     </div>

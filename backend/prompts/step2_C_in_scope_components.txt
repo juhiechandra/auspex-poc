@@ -19,7 +19,7 @@ Enumerate EVERY cloud service and infrastructure component visible in this archi
 <reasoning>
 Systematically scan each layer:
 1. Edge/Internet boundary - DNS, CDN, WAF, Shield
-2. Load balancing tier - ALB, NLB, API Gateway  
+2. Load balancing tier - ALB, NLB, API Gateway
 3. Compute tier - EC2, Lambda, ECS, EKS
 4. Data tier - RDS, DynamoDB, S3, EFS, ElastiCache
 5. Network infrastructure - VPC, Subnets, NAT, IGW
@@ -27,6 +27,7 @@ Systematically scan each layer:
 Count and list each distinctly.
 </reasoning>
 
+<!-- STATIC:OUTPUT_FORMAT -->
 <output_format>
 Return ONLY valid JSON, no markdown:
 {
@@ -37,3 +38,4 @@ Return ONLY valid JSON, no markdown:
   ]
 }
 </output_format>
+<!-- /STATIC:OUTPUT_FORMAT -->

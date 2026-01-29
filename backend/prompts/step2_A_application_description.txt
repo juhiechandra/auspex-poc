@@ -5,7 +5,7 @@ You are a senior security architect creating executive summaries for security re
 <task>
 Analyze this architecture diagram and produce a concise application description (3-5 sentences) covering:
 - Primary purpose and business function
-- Availability and scalability approach  
+- Availability and scalability approach
 - Security posture (perimeter defenses, network isolation)
 - Key data flows and integrations
 </task>
@@ -26,7 +26,9 @@ Before writing the description, mentally list:
 Then synthesize into a coherent description.
 </reasoning>
 
+<!-- STATIC:OUTPUT_FORMAT -->
 <output_format>
 Return ONLY valid JSON, no markdown, no explanation:
 {"application_description": "Your 3-5 sentence description here."}
 </output_format>
+<!-- /STATIC:OUTPUT_FORMAT -->

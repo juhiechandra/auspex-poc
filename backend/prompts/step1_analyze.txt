@@ -13,6 +13,7 @@ Analyze the provided architecture diagram and extract key security-relevant info
 - Extract factual observations about the architecture
 </constraints>
 
+<!-- STATIC:OUTPUT_FORMAT -->
 <output_format>
 Return a JSON object with exactly this structure (arrays of descriptive strings):
 
@@ -48,6 +49,12 @@ Return a JSON object with exactly this structure (arrays of descriptive strings)
 }
 </output_format>
 
+<output_instruction>
+Return ONLY valid JSON. No markdown code blocks, no explanations outside the JSON.
+Each array should contain descriptive strings that explain WHAT the component is and its ROLE in the architecture.
+</output_instruction>
+<!-- /STATIC:OUTPUT_FORMAT -->
+
 <guidelines>
 For each category, provide 3-8 descriptive entries based on what you observe:
 
@@ -66,8 +73,3 @@ For each category, provide 3-8 descriptive entries based on what you observe:
 **private_resources**: Internal/isolated components
 - Databases, internal services, backend compute, storage
 </guidelines>
-
-<output_instruction>
-Return ONLY valid JSON. No markdown code blocks, no explanations outside the JSON.
-Each array should contain descriptive strings that explain WHAT the component is and its ROLE in the architecture.
-</output_instruction>
